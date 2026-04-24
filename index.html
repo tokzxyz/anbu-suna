@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANBU — Sunagakure</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blood: #8b0000;
+    --crimson: #a30000;
+    --ember: #c0392b;
+    --glow: #e53935;
+    --gold: #b8860b;
+    --sand: #c9a84c;
+    --dark: #0a0707;
+    --void: #050303;
+    --panel: #110b0b;
+    --panel2: #160d0d;
+    --border: #2a1010;
+    --border2: #3d1515;
+    --text: #d4c5b0;
+    --text-dim: #8a7060;
+    --text-bright: #f0e6d0;
+    --redacted: #1a0a0a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background-color: var(--void);
+    color: var(--text);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.35;
+  }
+
+  /* ── SIDEBAR NAV ── */
+  .sidenav {
+    position: fixed;
+    left: 0; top: 0;
+    width: 220px;
+    height: 100vh;
+    background: linear-gradient(180deg, #0d0606 0%, #0a0404 100%);
+    border-right: 1px solid var(--border2);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    padding: 40px 0 30px;
+    overflow-y: auto;
+  }
+
+  .sidenav-logo {
+    text-align: center;
+    padding: 0 20px 30px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidenav-logo .kanji {
+    font-family: serif;
+    font-size: 42px;
+    color: var(--ember);
+    text-shadow: 0 0 20px rgba(197,57,31,0.5);
+    display: block;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .sidenav-logo .subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .sidenav ul {
+    list-style: none;
+    padding: 24px 0;
+    flex: 1;
+  }
+
+  .sidenav ul li a {
+    display: block;
+    padding: 9px 24px;
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.25s ease;
+  }
+
+  .sidenav ul li a:hover {
+    color: var(--sand);
+    border-left-color: var(--ember);
+    background: rgba(139,0,0,0.08);
+    padding-left: 32px;
+  }
+
+  .sidenav-clearance {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--blood);
+    letter-spacing: 1px;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    margin-left: 220px;
+    min-height: 100vh;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 50% 60%, #1a0505 0%, #0a0404 50%, var(--void) 100%);
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(139,0,0,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139,0,0,0.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 20%, transparent 80%);
+  }
+
+  .hero-scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+  }
+
+  .hero-circle {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(139,0,0,0.15);
+    animation: pulse-ring 6s ease-in-out infinite;
+  }
+
+  .hero-circle:nth-child(1) { width: 300px; height: 300px; animation-delay: 0s; }
+  .hero-circle:nth-child(2) { width: 500px; height: 500px; animation-delay: 1s; border-color: rgba(139,0,0,0.08); }
+  .hero-circle:nth-child(3) { width: 700px; height: 700px; animation-delay: 2s; border-color: rgba(139,0,0,0.05); }
+
+  @keyframes pulse-ring {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.05); opacity: 1; }
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 40px;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 6px;
+    color: var(--ember);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    animation: fadeInUp 1s ease forwards;
+    opacity: 0;
+    animation-delay: 0.3s;
+  }
+
+  .hero-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(52px, 8vw, 96px);
+    font-weight: 900;
+    color: var(--text-bright);
+    letter-spacing: 0.15em;
+    line-height: 1;
+    text-shadow:
+      0 0 40px rgba(197,57,31,0.3),
+      0 0 80px rgba(139,0,0,0.15);
+    animation: fadeInUp 1s ease forwards;
+    opacity: 0;
+    animation-delay: 0.5s;
+    margin-bottom: 8px;
+  }
+
+  .hero-title span {
+    color: var(--ember);
+    text-shadow:
+      0 0 30px rgba(197,57,31,0.8),
+      0 0 60px rgba(197,57,31,0.4);
+  }
+
+  .hero-kanji {
+    font-size: clamp(14px, 2vw, 18px);
+    color: var(--text-dim);
+    font-style: italic;
+    margin: 16px 0 32px;
+    animation: fadeInUp 1s ease forwards;
+    opacity: 0;
+    animation-delay: 0.7s;
+  }
+
+  .hero-divider {
+    width: 120px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--ember), transparent);
+    margin: 0 auto 24px;
+    animation: fadeInUp 1s ease forwards;
+    opacity: 0;
+    animation-delay: 0.9s;
+  }
+
+  .hero-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    animation: fadeInUp 1s ease forwards;
+    opacity: 0;
+    animation-delay: 1.1s;
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: fadeIn 2s ease forwards;
+    animation-delay: 2s;
+    opacity: 0;
+  }
+
+  .hero-scroll span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(180deg, var(--ember), transparent);
+    animation: scrollDrop 2s ease infinite;
+  }
+
+  @keyframes scrollDrop {
+    0% { transform: scaleY(0); transform-origin: top; opacity: 1; }
+    100% { transform: scaleY(1); transform-origin: top; opacity: 0; }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    padding: 80px 60px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .section:nth-child(even) {
+    background: rgba(10, 4, 4, 0.5);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+
+  .section-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--blood);
+    letter-spacing: 2px;
+    min-width: 32px;
+  }
+
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .section-title-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border2), transparent);
+  }
+
+  .section-title-accent {
+    width: 6px;
+    height: 6px;
+    background: var(--ember);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  /* ── TEXT BLOCKS ── */
+  .text-block {
+    max-width: 780px;
+  }
+
+  .text-block p {
+    color: var(--text);
+    margin-bottom: 20px;
+    font-size: 17px;
+  }
+
+  .text-block p:last-child { margin-bottom: 0; }
+
+  /* ── FEATURE GRID ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin-top: 8px;
+  }
+
+  .feature-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--blood);
+    padding: 28px 24px;
+    position: relative;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+  }
+
+  .feature-card:hover {
+    border-top-color: var(--ember);
+    transform: translateY(-3px);
+  }
+
+  .feature-card-icon {
+    font-size: 24px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .feature-card h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--sand);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .feature-card p {
+    font-size: 15px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* ── KODEX ── */
+  .kodex-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 700px;
+  }
+
+  .kodex-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--blood);
+    font-size: 16px;
+    color: var(--text);
+    transition: border-left-color 0.3s ease;
+  }
+
+  .kodex-list li:hover { border-left-color: var(--ember); }
+
+  .kodex-sym {
+    color: var(--ember);
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── ACCORDION ── */
+  .accordion { display: flex; flex-direction: column; gap: 8px; }
+
+  .acc-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .acc-trigger {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s ease;
+  }
+
+  .acc-trigger:hover { background: rgba(139,0,0,0.08); }
+
+  .acc-trigger h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--text-bright);
+    text-transform: uppercase;
+  }
+
+  .acc-arrow {
+    color: var(--ember);
+    font-size: 18px;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .acc-item.open .acc-arrow { transform: rotate(180deg); }
+
+  .acc-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+
+  .acc-item.open .acc-body { max-height: 2000px; }
+
+  .acc-body-inner {
+    padding: 0 24px 24px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+
+  .acc-body-inner p, .acc-body-inner ul { color: var(--text); font-size: 15px; }
+  .acc-body-inner ul { padding-left: 20px; margin: 8px 0; }
+  .acc-body-inner ul li { margin-bottom: 6px; }
+
+  .acc-sub-title {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--sand);
+    text-transform: uppercase;
+    margin: 16px 0 8px;
+  }
+
+  /* ── PUNISHMENT TABLE ── */
+  .punishment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .pun-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .pun-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .pun-card.s1 .pun-header { background: rgba(184,134,11,0.1); border-bottom: 1px solid rgba(184,134,11,0.2); }
+  .pun-card.s2 .pun-header { background: rgba(139,0,0,0.15); border-bottom: 1px solid rgba(139,0,0,0.3); }
+  .pun-card.s3 .pun-header { background: rgba(80,0,0,0.25); border-bottom: 1px solid rgba(100,0,0,0.5); }
+
+  .pun-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 3px 8px;
+    letter-spacing: 2px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .pun-card.s1 .pun-badge { background: rgba(184,134,11,0.2); color: var(--sand); border: 1px solid rgba(184,134,11,0.4); }
+  .pun-card.s2 .pun-badge { background: rgba(139,0,0,0.2); color: var(--ember); border: 1px solid rgba(139,0,0,0.5); }
+  .pun-card.s3 .pun-badge { background: rgba(100,0,0,0.3); color: var(--glow); border: 1px solid rgba(197,57,31,0.6); }
+
+  .pun-card h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--text-bright);
+  }
+
+  .pun-body { padding: 16px 20px; }
+  .pun-body p, .pun-body ul { font-size: 14px; color: var(--text-dim); }
+  .pun-body ul { padding-left: 16px; }
+  .pun-body ul li { margin-bottom: 5px; }
+  .pun-section-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--blood);
+    text-transform: uppercase;
+    margin: 12px 0 6px;
+  }
+
+  /* ── HIERARCHY ── */
+  .hierarchy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .hier-item {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--blood);
+    padding: 20px 28px;
+    position: relative;
+    transition: border-top-color 0.3s;
+    margin-bottom: 2px;
+  }
+
+  .hier-item:hover { border-top-color: var(--ember); }
+
+  .hier-item.top { border-top-color: var(--ember); width: 100%; }
+  .hier-item.rank2 { width: 95%; }
+  .hier-item.rank3 { width: 90%; }
+  .hier-item.rank4 { width: 85%; }
+  .hier-item.rank5 { width: 80%; }
+
+  .hier-connector {
+    width: 1px;
+    height: 16px;
+    background: var(--blood);
+    margin: 0 auto;
+  }
+
+  .hier-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--ember);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .hier-title {
+    font-family: 'Cinzel', serif;
+    font-size: 15px;
+    color: var(--text-bright);
+    margin-bottom: 10px;
+  }
+
+  .hier-duties {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .duty-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 3px 8px;
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  /* ── TRAINING ── */
+  .training-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  .training-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .training-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--ember), var(--blood));
+  }
+
+  .training-card h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--sand);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .training-card p { font-size: 14px; color: var(--text-dim); }
+
+  /* ── MEMBER TABLE ── */
+  .member-table-wrap {
+    overflow-x: auto;
+  }
+
+  .member-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .member-table thead tr {
+    background: var(--panel2);
+    border-bottom: 2px solid var(--blood);
+  }
+
+  .member-table th {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--ember);
+    text-transform: uppercase;
+    padding: 14px 20px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .member-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s ease;
+  }
+
+  .member-table tbody tr:hover { background: rgba(139,0,0,0.05); }
+
+  .member-table td {
+    padding: 16px 20px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  .codename {
+    font-family: 'Cinzel', serif;
+    font-size: 15px;
+    color: var(--text-bright);
+    letter-spacing: 1px;
+  }
+
+  .rank-badge {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 4px 10px;
+    letter-spacing: 1px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .rank-leitung { background: rgba(197,57,31,0.2); color: var(--glow); border: 1px solid rgba(197,57,31,0.5); }
+  .rank-stv { background: rgba(139,0,0,0.2); color: var(--ember); border: 1px solid rgba(139,0,0,0.5); }
+  .rank-elite { background: rgba(184,134,11,0.1); color: var(--sand); border: 1px solid rgba(184,134,11,0.3); }
+  .rank-anbu { background: rgba(30,10,10,0.5); color: var(--text-dim); border: 1px solid var(--border2); }
+  .rank-lehrling { background: rgba(20,10,10,0.5); color: #5a4040; border: 1px solid var(--border); }
+
+  .clearance {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--sand);
+    letter-spacing: 1px;
+  }
+
+  .redacted {
+    display: inline-block;
+    background: var(--redacted);
+    color: var(--redacted);
+    padding: 3px 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    user-select: none;
+    border: 1px solid #1a0808;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .redacted::after {
+    content: '████████████';
+    color: #1a0808;
+  }
+
+  .placeholder-row td { opacity: 0.45; }
+  .placeholder-row:hover { background: transparent !important; }
+
+  .mask-icon {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background: var(--panel2);
+    border: 1px solid var(--border2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  /* ── ETHOS BANNER ── */
+  .ethos-banner {
+    background: linear-gradient(135deg, var(--panel) 0%, #0d0404 100%);
+    border: 1px solid var(--border2);
+    border-left: 4px solid var(--ember);
+    padding: 32px 40px;
+    margin: 40px 0 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ethos-banner::before {
+    content: '暗';
+    position: absolute;
+    right: -10px;
+    top: -20px;
+    font-size: 140px;
+    color: rgba(139,0,0,0.04);
+    font-family: serif;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .ethos-banner p {
+    font-family: 'Crimson Pro', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--text);
+    line-height: 2;
+  }
+
+  .ethos-banner p span {
+    color: var(--sand);
+    font-style: normal;
+    font-size: 13px;
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 4px;
+    font-family: 'Share Tech Mono', monospace;
+    font-style: normal;
+  }
+
+  /* ── APPEARANCE GRID ── */
+  .appearance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .app-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+
+  .app-item-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--blood);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .app-item p { font-size: 14px; color: var(--text-dim); }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--void);
+    border-top: 1px solid var(--border);
+    padding: 40px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .footer-left .title {
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    color: var(--ember);
+    letter-spacing: 3px;
+  }
+
+  .footer-left .sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+
+  .footer-right {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-align: right;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--void); }
+  ::-webkit-scrollbar-thumb { background: var(--blood); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ember); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .sidenav { display: none; }
+    .main { margin-left: 0; }
+    .section { padding: 60px 24px; }
+    .footer { padding: 30px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR NAV -->
+<nav class="sidenav">
+  <div class="sidenav-logo">
+    <span class="kanji">暗部</span>
+    <span class="subtitle">Sunagakure — ANBU</span>
+  </div>
+  <ul>
+    <li><a href="#geschichte">01 — Geschichte</a></li>
+    <li><a href="#besonderheit">02 — Besonderheit</a></li>
+    <li><a href="#erscheinung">03 — Erscheinung</a></li>
+    <li><a href="#kodex">04 — Kodex</a></li>
+    <li><a href="#regelwerk">05 — Regelwerk</a></li>
+    <li><a href="#strafkatalog">06 — Strafkatalog</a></li>
+    <li><a href="#hierarchie">07 — Hierarchie</a></li>
+    <li><a href="#aufgaben">08 — Aufgaben</a></li>
+    <li><a href="#training">09 — Training</a></li>
+    <li><a href="#mitglieder">10 — Mitglieder</a></li>
+  </ul>
+  <div class="sidenav-clearance">
+    CLEARANCE REQUIRED<br>
+    LEVEL 5 — CLASSIFIED
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-scanlines"></div>
+    <div class="hero-circle"></div>
+    <div class="hero-circle"></div>
+    <div class="hero-circle"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">Ansatsu Senjutsu Tokushu Butai</p>
+      <h1 class="hero-title"><span>ANBU</span></h1>
+      <p class="hero-kanji">暗殺戦術特殊部隊 — Sunagakure no Sato</p>
+      <div class="hero-divider"></div>
+      <p class="hero-sub">Wir sind die Schatten von Sunagakure</p>
+    </div>
+    <div class="hero-scroll">
+      <span>SCROLL</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- 01 GESCHICHTE -->
+  <section class="section" id="geschichte">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Geschichte</h2>
+      <div class="section-title-line"></div>
+      <div class="section-title-accent"></div>
+    </div>
+    <div class="text-block">
+      <p>ANBU — <em>„Ansatsu Senjutsu Tokushu Butai"</em> — bezeichnet die Spezialeinheit für Attentat und Taktik, die in allen großen Shinobi-Dörfern existiert. Doch in Sunagakure entwickelten sie sich auf ihre ganz eigene Art.</p>
+      <p>Die Gründung erfolgte während der ersten Jahre nach der Entstehung des Dorfes, als politische Intrigen, Verrat und Attentate an der Tagesordnung waren. Der Kazekage erkannte früh, dass er eine Einheit brauchte, die im Schatten agiert — außerhalb der regulären Shinobi-Hierarchie, loyal nur gegenüber dem Dorf und dem Kage selbst.</p>
+    </div>
+  </section>
+
+  <!-- 02 BESONDERHEIT -->
+  <section class="section" id="besonderheit">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Besonderheit</h2>
+      <div class="section-title-line"></div>
+      <div class="section-title-accent"></div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="feature-card-icon">🏜</span>
+        <h3>Überleben im Sand</h3>
+        <p>Viele Missionen führen tief in feindliche Dünen, Stürme und Oasen. Ausrüstung und Ausbildung sind auf Hitze, Trockenheit und Sand ausgelegt.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">👁</span>
+        <h3>Tarnung & Illusion</h3>
+        <p>Statt auf Wasser oder Nebel setzen sie auf Sand, Asche und Hitzeflimmern, um sich unsichtbar zu machen — die Wüste selbst wird zur Waffe.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">⚔</span>
+        <h3>Härte & Disziplin</h3>
+        <p>In der gnadenlosen Umgebung der Wüste hat jeder Fehler den Tod zur Folge. Entsprechend streng sind die Auswahlverfahren und die Disziplin der Einheit.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">🕯</span>
+        <h3>Politisches Instrument</h3>
+        <p>Die Kage von Suna haben die ANBU nicht nur als Kämpfer, sondern auch als Werkzeug zur Machtsicherung genutzt — Gerüchte über geheime Operationen gegen rivalisierende Clans halten sich hartnäckig.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 ERSCHEINUNG -->
+  <section class="section" id="erscheinung">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Erscheinung</h2>
+      <div class="section-title-line"></div>
+      <div class="section-title-accent"></div>
+    </div>
+    <div class="text-block" style="margin-bottom:32px;">
+      <p>Wie in den anderen Dörfern tragen auch die ANBU von Sunagakure spezielle Ausrüstung, um ihre Identität zu verbergen. Ihre Masken sind von Tieren der Wüste inspiriert.</p>
+    </div>
+    <div class="appearance-grid">
+      <div class="app-item">
+        <div class="app-item-label">Kleidung</div>
+        <p>Sandfarbene und schwarze Stoffe, kombiniert mit leichten Schutzplatten.</p>
+      </div>
+      <div class="app-item">
+        <div class="app-item-label">Stirnband</div>
+        <p>Symbol von Sunagakure — sichtbar auf Stirn, Schulter und Maske.</p>
+      </div>
+      <div class="app-item">
+        <div class="app-item-label">Masken</div>
+        <p>Tiermotive aus der Wüste: Skorpione, Schlangen, Falken, Füchse, Kojoten.</p>
+      </div>
+      <div class="app-item">
+        <div class="app-item-label">Bewaffnung</div>
+        <p>Tantō, Kunai, Shuriken, Giftklingen, Senbon, Drahtseile, Ketten sowie Rauch- und Blendbomben.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 KODEX -->
+  <section class="section" id="kodex">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Kodex</h2>
+      <div class="section-title-line"></div>
+      <div class="section-title-accent"></div>
+    </div>
+    <ul class="kodex-list">
+      <li><span class="kodex-sym">࿔</span>Die Maske ersetzt die Identität.</li>
+      <li><span class="kodex-sym">࿔</span>Privat existiert nur außerhalb der Mission.</li>
+      <li><span class="kodex-sym">࿔</span>Der Wille des Kazekage ist bindend.</li>
+      <li><span class="kodex-sym">࿔</span>Mission hat Vorrang vor dem Leben des Einzelnen.</li>
+      <li><span class="kodex-sym">࿔</span>Verrat bedeutet Eliminierung.</li>
+      <li><span class="kodex-sym">࿔</span>Keine Toleranz gegenüber Illoyalität.</li>
+    </ul>
+    <div class="ethos-banner" style="margin-top:40px;">
+      <p>
+        <span>— Ethos der Schatten —</span>
+        „Wir sind der Sand, der lautlos fällt."<br>
+        „Wir sind der Wind, der keine Spur hinterlässt."<br>
+        „Wir sind die Schatten von Sunagakure."
+      </p>
+    </div>
+  </section>
+
+  <!-- 05 REGELWERK -->
+  <section class="section" id="regelwerk">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">Regelwerk</h2>
+      <div class="section-title-line"></div>
+      <div class="section-title-accent"></div>
+    </div>
+    <div class="accordion" id="regelAccordion">
+
+      <div class="acc-item">
+        <button class="acc-trigger" onclick="toggleAcc(this)">
+          <h3>Identität & Geheimhaltung</h3>
+          <span class="acc-arrow">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-body-inner">
+            <ul>
+              <li>Die Identität eines ANBU-Mitglieds ist streng geheim.</li>
+              <li>Kein Zivilist oder regulärer Shinobi darf erfahren, wer hinter der Maske steckt.</li>
+              <li>Der Codename ersetzt den echten Namen vollständig während des Dienstes.</li>
+              <li>Das Entfernen der Maske in Anwesenheit Außenstehender ist verboten.</li>
+              <li>Informationen über Missionen, Mitglieder und Befehle unterliegen der höchsten Geheimhaltungsstufe.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <button class="acc-trigger" onclick="toggleAcc(this)">
+          <h3>Befehlsstruktur</h3>
+          <span class="acc-arrow">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-body-inner">
+            <ul>
+              <li>Der Kazekage steht über allen ANBU.</li>
+              <li>Direkt unter ihm steht der Kommandant der ANBU — <em>ANBU Taichō</em>.</li>
+              <li>Befehle werden ohne Zögern oder Diskussion ausgeführt.</li>
+              <li>Der Befehl eines Vorgesetzten gilt über persönlicher Moral oder Bindungen.</li>
+              <li>Loyalität gilt allein Sunagakure.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <button class="acc-trigger" onclick="toggleAcc(this)">
+          <h3>Verhalten im Dienst</h3>
+          <span class="acc-arrow">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-body-inner">
+            <ul>
+              <li>Emotionale Kontrolle ist Pflicht. Gefühle dürfen Missionen nicht beeinflussen.</li>
+              <li>Disziplin, Präzision und Schweigen sind die Tugenden eines wahren ANBU.</li>
+              <li>Versagen, das die Sicherheit des Dorfes gefährdet, wird als Verrat behandelt.</li>
+              <li>Der Tod ist einem Geständnis oder einer Gefangennahme durch den Feind vorzuziehen.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <button class="acc-trigger" onclick="toggleAcc(this)">
+          <h3>Missionen</h3>
+          <span class="acc-arrow">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-body-inner">
+            <ul>
+              <li>ANBU übernehmen Missionen höchster Geheimhaltungsstufe: Attentate, Spionage, Informationssicherung, Beseitigung von Verrätern, Schutz des Kazekage.</li>
+              <li>Jeder Einsatz wird verschlüsselt protokolliert — öffentliche Berichte existieren nicht.</li>
+              <li>Niemand außerhalb der ANBU darf Details zu Missionen kennen.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <button class="acc-trigger" onclick="toggleAcc(this)">
+          <h3>Loyalität & Verrat</h3>
+          <span class="acc-arrow">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-body-inner">
+            <ul>
+              <li>Ein ANBU schwört ewige Loyalität gegenüber dem Kazekage und dem Dorf.</li>
+              <li>Verrat, Spionage oder das Weitergeben von Informationen wird mit sofortiger Eliminierung geahndet.</li>
+              <li>Überläufer werden als <em>verlorene Schatten</em> bezeichnet — sie verlieren Namen und Ehre.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <button class="acc-trigger" onclick="toggleAcc(this)">
+          <h3>Interne Disziplin & Strafen</h3>
+          <span class="acc-arrow">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-body-inner">
+            <p>Verstöße gegen die Kodizes führen zu Disziplinarmaßnahmen — in aufsteigender Schwere:</p>
+            <ul style="margin-top:10px;">
+              <li>Verwarnung</li>
+              <li>Einzelhaft</li>
+              <li>Degradierung</li>
+              <li>Eliminierung</li>
+            </ul>
+            <p style="margin-top:12px;">Nur der ANBU-Kommandant oder der Kazekage darf Strafen verhängen.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 06 STRAFKATALOG -->
+  <section class="section" id="strafkatalog">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title">Strafkatalog</h2>
+      <div class="section-title-line"></div>
+      <div class="section-title-accent"></div>
+    </div>
+    <div class="punishment-grid">
+
+      <div class="pun-card s1">
+        <div class="pun-header">
+          <span class="pun-badge">STUFE I</span>
+          <h3>Disziplinarvergehen</h3>
+        </div>
+        <div class="pun-body">
+          <div class="pun-section-label">Beispiele</div>
+          <ul>
+            <li>Ungehorsam gegenüber Vorgesetzten (ohne Missionsgefahr)</li>
+            <li>Unnötiges Reden über interne Abläufe</li>
+            <li>Unerlaubtes Entfernen der Maske im HQ</li>
+            <li>Respektloses Verhalten gegenüber Kameraden</li>
+          </ul>
+          <div class="pun-section-label" style="margin-top:14px;">Strafen</div>
+          <ul>
+            <li>Schriftliche Verwarnung (intern)</li>
+            <li>Zusätzliche Nachtpatrouillen oder Trainingsstunden</li>
+            <li>Temporäre Degradierung (z.B. 1 Monat)</li>
+            <li>Strenger Bericht an den ANBU-Taichō</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pun-card s2">
+        <div class="pun-header">
+          <span class="pun-badge">STUFE II</span>
+          <h3>Sicherheitsverletzung</h3>
+        </div>
+        <div class="pun-body">
+          <div class="pun-section-label">Beispiele</div>
+          <ul>
+            <li>Weitergabe vertraulicher Informationen</li>
+            <li>Eigenmächtiges Handeln auf Mission</li>
+            <li>Kontaktaufnahme mit Außenstehenden über ANBU-Angelegenheiten</li>
+            <li>Missachtung direkter Befehle des Taichō oder Kazekage</li>
+          </ul>
+          <div class="pun-section-label" style="margin-top:14px;">Strafen</div>
+          <ul>
+            <li>Isolationshaft (3–10 Tage in Dunkelzelle)</li>
+            <li>Zwangsmission unter Aufsicht</li>
+            <li>Permanente Überwachung durch andere ANBU</li>
+            <li>Körperliche Disziplinierung (Narben als Mahnmal — optional fürs RP)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pun-card s3">
+        <div class="pun-header">
+          <span class="pun-badge">STUFE III</span>
+          <h3>Hochverrat</h3>
+        </div>
+        <div class="pun-body">
+          <div class="pun-section-label">Beispiele</div>
+          <ul>
+            <li>Zusammenarbeit mit feindlichen Mächten</li>
+            <li>Verkauf von Geheimnissen an Außenstehende</li>
+            <li>Flucht aus dem Dorf / Desertion</li>
+            <li>Angriff auf Kazekage oder eigene ANBU-Mitglieder</li>
+          </ul>
+          <div class="pun-section-label" style="margin-top:14px;">Strafen</div>
+          <ul>
+            <li>Sofortige Eliminierung durch das interne Exekutionskommando <em>„Stille Klingen"</em></li>
+            <li>Auslöschung der Identität (Codename löschen, Akten vernichten)</li>
+            <li>Öffentliche Hinrichtung im Schattenraum (nur vor ANBU)</li>
+            <li>Maske wird zerbrochen und im Sand vergraben</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="ethos-banner" style="margin-top:32px; border-left-color: var(--blood);">
+      <p>
+        <span>— Sonderregel: Reinigung —</span>
+        Ein Mitglied, das Schande über die ANBU gebracht hat, kann durch eine Reinigungsmission seinen Ruf wiederherstellen. Überlebt der ANBU, entscheidet der Kazekage persönlich über Wiederaufnahme oder endgültigen Verstoß.
+      </p>
+    </div>
+  </section>
+
+  <!-- 07 HIERARCHIE -->
+  <section class="section" id="hierarchie">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2 class="section-title">Hierarchie</h2>
+      <div class="section-title-line"></div>
+      <div class="section-title-accent"></div>
+    </div>
+    <div class="hierarchy">
+      <div class="hier-item top">
+        <div class="hier-label">Rang I</div>
+        <div class="hier-title">ANBU Leitung</div>
+        <div class="hier-duties">
+          <span class="duty-tag">Direkte Unterstellung beim Kazekage</span>
+          <span class="duty-tag">Strategische Führung</span>
+          <span class="duty-tag">Geheimhaltung</span>
+        </div>
+      </div>
+      <div class="hier-connector"></div>
+      <div class="hier-item rank2">
+        <div class="hier-label">Rang II</div>
+        <div class="hier-title">Stellvertretung</div>
+        <div class="hier-duties">
+          <span class="duty-tag">Führungsübernahme bei Abwesenheit</span>
+          <span class="duty-tag">Ausbildung</span>
+          <span class="duty-tag">Disziplin</span>
+        </div>
+      </div>
+      <div class="hier-connector"></div>
+      <div class="hier-item rank3">
+        <div class="hier-label">Rang III</div>
+        <div class="hier-title">Elite-ANBU</div>
+        <div class="hier-duties">
+          <span class="duty-tag">Erfahrenste Mitglieder</span>
+          <span class="duty-tag">Härteste Missionen</span>
+          <span class="duty-tag">Ausbilder</span>
+        </div>
+      </div>
+      <div class="hier-connector"></div>
+      <div class="hier-item rank4">
+        <div class="hier-label">Rang IV</div>
+        <div class="hier-title">ANBU</div>
+        <div class="hier-duties">
+          <span class="duty-tag">Operatives Rückgrat</span>
+          <span class="duty-tag">Attentate</span>
+          <span class="duty-tag">Spionage</span>
+          <span class="duty-tag">Schutz</span>
+          <span class="duty-tag">Sabotage</span>
+        </div>
+      </div>
+      <div class="hier-connector"></div>
+      <div class="hier-item rank5">
+        <div class="hier-label">Rang V</div>
+        <div class="hier-title">ANBU-Lehrling</div>
+        <div class="hier-duties">
+          <span class="duty-tag">Anwärter unter Beobachtung</span>
+          <span class="duty-tag">Einsatz nur bei geringem Risiko</span>
+          <span class="duty-tag">Bis Maskenzuteilung</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 AUFGABEN -->
+  <section class="section" id="aufgaben">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2 class="section-title">Aufgaben</h2>
+      <div class="section-title-line"></div>
+      <div class="section-title-accent"></div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="feature-card-icon">🏜</span>
+        <h3>Überleben im Sand</h3>
+        <p>Viele Missionen führen tief in feindliche Dünen, Stürme und Oasen. Ausrüstung und Training sind auf Hitze, Trockenheit und Sand ausgelegt.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">🌫</span>
+        <h3>Tarnung & Illusion</h3>
+        <p>Statt auf Wasser oder Nebel setzen sie auf Sand, Asche und Hitzeflimmern — die Wüste selbst wird zur Tarnung.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">🗡</span>
+        <h3>Härte & Disziplin</h3>
+        <p>In der gnadenlosen Wüste bedeutet jeder Fehler den Tod. Die Auswahlverfahren sind entsprechend streng und kompromisslos.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">🕯</span>
+        <h3>Politisches Instrument</h3>
+        <p>Die Kage von Suna nutzen die ANBU als Werkzeug zur Machtsicherung — geheime Operationen gegen rivalisierende Clans sollen vorgekommen sein.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 09 TRAINING -->
+  <section class="section" id="training">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2 class="section-title">Training</h2>
+      <div class="section-title-line"></div>
+      <div class="section-title-accent"></div>
+    </div>
+    <div class="training-grid">
+      <div class="training-card">
+        <h3>Tarnung & Unsichtbarkeit</h3>
+        <p>Übungen in Sandstürmen, Nachtoperationen und heißen Dünen. Ziel: Bewegung ohne Spur, kein Laut, keine Aura. Ein Rekrut, der entdeckt wird, gilt als durchgefallen.</p>
+      </div>
+      <div class="training-card">
+        <h3>Waffenbeherrschung</h3>
+        <p>Pflicht: Mindestens zwei Waffenarten. Schwerpunkt auf Tantō-Kampf und Fernwaffen. Tägliches Training gegen bewegliche Ziele sowie realistische Kampfübungen gegen mehrere Gegner.</p>
+      </div>
+      <div class="training-card">
+        <h3>Giftkunde</h3>
+        <p>Grundausbildung in Herstellung, Dosierung und Anwendung von Giften. Rekruten müssen zwischen tödlichen, lähmenden und betäubenden Substanzen unterscheiden. Falscher Einsatz wird disziplinarisch geahndet.</p>
+      </div>
+      <div class="training-card">
+        <h3>Überlebenstraining</h3>
+        <p>Mehrtägige Märsche durch die Wüste ohne Wasser oder Hilfsmittel. Simulation von Extrembedingungen: Hunger, Schlafentzug, Hitze. Ziel ist geistige und körperliche Belastbarkeit.</p>
+      </div>
+      <div class="training-card">
+        <h3>Psychische Belastungsproben</h3>
+        <p>Simulation von Folter, Isolation und mentalem Druck. Ziel: absolute Geheimhaltung auch unter Extrembedingungen. Rekruten, die brechen, werden aussortiert.</p>
+      </div>
+      <div class="training-card">
+        <h3>Teamkoordination</h3>
+        <p>Squads von 3–4 Mitgliedern. Jede Bewegung wird auf Synchronität gedrillt — Angriff, Rückzug, Ablenkung. Fehler eines Einzelnen führen zu Konsequenzen für das gesamte Team.</p>
+      </div>
+      <div class="training-card">
+        <h3>Ninjutsu-Perfektion</h3>
+        <p>Pflicht: Perfektion mindestens eines Elements. Jutsu werden unter realen Bedingungen trainiert — Sandsturm, Dunkelheit, Erschöpfung. Keine Abkürzungen.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 MITGLIEDER -->
+  <section class="section" id="mitglieder">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <h2 class="section-title">Mitglieder</h2>
+      <div class="section-title-line"></div>
+      <div class="section-title-accent"></div>
+    </div>
+    <div class="member-table-wrap">
+      <table class="member-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Codename</th>
+            <th>Position</th>
+            <th>Sicherheitsstufe</th>
+            <th>Maske</th>
+            <th>Spezialisierung</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- IKARI -->
+          <tr>
+            <td><span style="font-family:'Share Tech Mono',monospace;color:var(--text-dim);font-size:12px;">001</span></td>
+            <td><span class="codename">Ikari</span></td>
+            <td><span class="rank-badge rank-leitung">ANBU Leitung</span></td>
+            <td><span class="clearance">⬛ 5</span></td>
+            <td><span class="redacted"></span></td>
+            <td><span class="redacted"></span></td>
+            <td><span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--ember);letter-spacing:2px;">AKTIV</span></td>
+          </tr>
+
+          <!-- AIZEN -->
+          <tr>
+            <td><span style="font-family:'Share Tech Mono',monospace;color:var(--text-dim);font-size:12px;">002</span></td>
+            <td><span class="codename">Aizen</span></td>
+            <td><span class="rank-badge rank-stv">Stv. Leitung</span></td>
+            <td><span class="clearance">⬛ 5</span></td>
+            <td><span class="redacted"></span></td>
+            <td><span class="redacted"></span></td>
+            <td><span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--ember);letter-spacing:2px;">AKTIV</span></td>
+          </tr>
+
+          <!-- PLATZHALTER 1-6 -->
+          <tr class="placeholder-row">
+            <td><span style="font-family:'Share Tech Mono',monospace;color:var(--text-dim);font-size:12px;">003</span></td>
+            <td><span class="codename" style="opacity:0.3;">—</span></td>
+            <td><span class="rank-badge rank-elite">Elite-ANBU</span></td>
+            <td><span class="clearance" style="opacity:0.3;">—</span></td>
+            <td><span class="redacted"></span></td>
+            <td><span class="redacted"></span></td>
+            <td><span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:2px;">VAKANT</span></td>
+          </tr>
+          <tr class="placeholder-row">
+            <td><span style="font-family:'Share Tech Mono',monospace;color:var(--text-dim);font-size:12px;">004</span></td>
+            <td><span class="codename" style="opacity:0.3;">—</span></td>
+            <td><span class="rank-badge rank-elite">Elite-ANBU</span></td>
+            <td><span class="clearance" style="opacity:0.3;">—</span></td>
+            <td><span class="redacted"></span></td>
+            <td><span class="redacted"></span></td>
+            <td><span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:2px;">VAKANT</span></td>
+          </tr>
+          <tr class="placeholder-row">
+            <td><span style="font-family:'Share Tech Mono',monospace;color:var(--text-dim);font-size:12px;">005</span></td>
+            <td><span class="codename" style="opacity:0.3;">—</span></td>
+            <td><span class="rank-badge rank-anbu">ANBU</span></td>
+            <td><span class="clearance" style="opacity:0.3;">—</span></td>
+            <td><span class="redacted"></span></td>
+            <td><span class="redacted"></span></td>
+            <td><span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:2px;">VAKANT</span></td>
+          </tr>
+          <tr class="placeholder-row">
+            <td><span style="font-family:'Share Tech Mono',monospace;color:var(--text-dim);font-size:12px;">006</span></td>
+            <td><span class="codename" style="opacity:0.3;">—</span></td>
+            <td><span class="rank-badge rank-anbu">ANBU</span></td>
+            <td><span class="clearance" style="opacity:0.3;">—</span></td>
+            <td><span class="redacted"></span></td>
+            <td><span class="redacted"></span></td>
+            <td><span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:2px;">VAKANT</span></td>
+          </tr>
+          <tr class="placeholder-row">
+            <td><span style="font-family:'Share Tech Mono',monospace;color:var(--text-dim);font-size:12px;">007</span></td>
+            <td><span class="codename" style="opacity:0.3;">—</span></td>
+            <td><span class="rank-badge rank-anbu">ANBU</span></td>
+            <td><span class="clearance" style="opacity:0.3;">—</span></td>
+            <td><span class="redacted"></span></td>
+            <td><span class="redacted"></span></td>
+            <td><span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:2px;">VAKANT</span></td>
+          </tr>
+          <tr class="placeholder-row">
+            <td><span style="font-family:'Share Tech Mono',monospace;color:var(--text-dim);font-size:12px;">008</span></td>
+            <td><span class="codename" style="opacity:0.3;">—</span></td>
+            <td><span class="rank-badge rank-lehrling">ANBU-Lehrling</span></td>
+            <td><span class="clearance" style="opacity:0.3;">—</span></td>
+            <td><span class="redacted"></span></td>
+            <td><span class="redacted"></span></td>
+            <td><span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:2px;">VAKANT</span></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:20px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:2px;">
+      ⬛ ALLE WEITEREN INFORMATIONEN UNTERLIEGEN GEHEIMHALTUNGSSTUFE 5 — ZUGRIFF VERWEIGERT
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-left">
+      <div class="title">ANBU — SUNAGAKURE</div>
+      <div class="sub">暗殺戦術特殊部隊 // KLASSIFIZIERT</div>
+    </div>
+    <div class="footer-right">
+      GEHEIMHALTUNGSSTUFE: 5<br>
+      ZUGRIFF NUR FÜR AUTORISIERTE MITGLIEDER
+    </div>
+  </footer>
+
+</main>
+
+<script>
+  function toggleAcc(trigger) {
+    const item = trigger.closest('.acc-item');
+    const isOpen = item.classList.contains('open');
+    // close all
+    document.querySelectorAll('.acc-item.open').forEach(el => el.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  // Active nav highlighting on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.sidenav ul li a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.style.color = '';
+          link.style.borderLeftColor = '';
+        });
+        const active = document.querySelector(`.sidenav a[href="#${entry.target.id}"]`);
+        if (active) {
+          active.style.color = 'var(--sand)';
+          active.style.borderLeftColor = 'var(--ember)';
+        }
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
